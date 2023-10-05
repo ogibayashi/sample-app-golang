@@ -1,0 +1,42 @@
+name: Trigger auto deployment for sample-app-golang-vnet
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/sample-app-golang-vnet-AutoDeployTrigger-284236d7-9489-44f8-99fb-8aefdd7bf161.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.SAMPLEAPPGOLANGVNET_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: sandbox20230926.azurecr.io
+          registryUsername: ${{ secrets.SAMPLEAPPGOLANGVNET_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.SAMPLEAPPGOLANGVNET_REGISTRY_PASSWORD }}
+          containerAppName: sample-app-golang-vnet
+          resourceGroup: container-app-trial
+          imageToBuild: sandbox20230926.azurecr.io/sample-app-golang-vnet:${{ github.sha }}
+          
+
+     
+
