@@ -6,7 +6,7 @@ on:
       - 'main'
 
 env:
-  MANIFEST_BRANCH: sampleapp
+  MANIFEST_BRANCH: main
 
 jobs:
   build-and-push:
