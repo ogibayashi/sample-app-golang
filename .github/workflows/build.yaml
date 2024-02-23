@@ -6,7 +6,7 @@ on:
       - 'actions'
 
 env:
-  MANIFEST_BRANCH: main
+  MANIFEST_BRANCH: sampleapp
 
 jobs:
   build-and-push:
@@ -40,28 +40,28 @@ jobs:
         push: true
         tags: ghcr.io/ogibayashi/sample-app-golang:${{ env.TAG }}
 
-    # - name: setup ssh
-    #   uses: webfactory/ssh-agent@v0.5.3
-    #   with:
-    #     ssh-private-key: ${{ secrets.MANIFEST_SSH_KEY }}
+    - name: setup ssh
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.MANIFEST_SSH_KEY }}
 
-    # - name: Checkout Repository
-    #   uses: actions/checkout@v2
-    #   with:
-    #     repository: ogibayashi/takenoko-manifest
-    #     ref: ${{ env.MANIFEST_BRANCH }}
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        repository: ogibayashi/takenoko-manifest
+        ref: ${{ env.MANIFEST_BRANCH }}
 
-    # - name: Setup Kustomize
-    #   uses: imranismail/setup-kustomize@v1
-    #   with:
-    #     kustomize-version: "4.0.5"
+    - name: Setup Kustomize
+      uses: imranismail/setup-kustomize@v1
+      with:
+        kustomize-version: "4.0.5"
 
-    # - name: Update Image Tag
-    #   run: |
-    #     cd apps/chatgpt-linebot
-    #     kustomize edit set image registry.gitlab.com/ogibayashi1/chatgpt-linebot=registry.gitlab.com/ogibayashi1/chatgpt-linebot:${TAG}
-    #     git config --local user.email "action@github.com"
-    #     git config --local user.name "GitHub Action"
-    #     git add .
-    #     git commit -m "Update image tag to ${TAG}"
-    #     git push origin ${MANIFEST_BRANCH}
+    - name: Update Image Tag
+      run: |
+        cd apps/chatgpt-linebot
+        kustomize edit set image ghcr.io/ogibayashi/sample-app-golang=ghcr.io/ogibayashi/sample-app-golang:${TAG}
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Update image tag to ${TAG}"
+        git push origin ${MANIFEST_BRANCH}
