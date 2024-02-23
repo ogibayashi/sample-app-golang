@@ -1,16 +1,10 @@
-# Goの公式イメージをベースにする
-FROM golang:latest
-
-# アプリケーションのソースコードをコピー
+FROM golang:1.21.6 as builder
 WORKDIR /app
 COPY . .
 
-# 必要なパッケージをダウンロード
-RUN go get -d -v ./...
+RUN make build
 
-# アプリケーションのビルド
-RUN go build -o main .
-
-EXPOSE 8080
-# コンテナ内でアプリケーションを実行
-CMD ["./main"]
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/bin/sample-app-golang .
+CMD ["./sample-app-golang"]
