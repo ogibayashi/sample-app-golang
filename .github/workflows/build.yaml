@@ -3,7 +3,7 @@ name: Docker Build and Push
 on:
   push:
     branches:
-      - 'actions'
+      - 'main'
 
 env:
   MANIFEST_BRANCH: sampleapp
@@ -58,7 +58,7 @@ jobs:
 
     - name: Update Image Tag
       run: |
-        cd apps/chatgpt-linebot
+        cd apps/sample-app-golang
         kustomize edit set image ghcr.io/ogibayashi/sample-app-golang=ghcr.io/ogibayashi/sample-app-golang:${TAG}
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
