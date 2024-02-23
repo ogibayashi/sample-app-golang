@@ -1,0 +1,39 @@
+openapi: 3.0.0
+info:
+  title: sample-app-golang
+  version: 1.0.0
+paths:
+  /hello:
+    get:
+      summary: just return hello
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /sort:
+    get:
+      summary: generate a list of random numbers and sort them
+      parameters:
+        - name: size
+          in: query
+          description: size of the list
+          required: true
+          schema:
+            type: integer
+      
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
