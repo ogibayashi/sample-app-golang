@@ -40,12 +40,14 @@ func (h *SampleHanlder) GetSort(c *gin.Context, params gen.GetSortParams) {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	// Ginルーターのインスタンスを作成
+
 	r := gin.Default()
 	r.Use(middleware.AccessLogMiddleware())
 
 	gen.RegisterHandlers(r, &SampleHanlder{})
 
-	// サーバーを起動
-	r.Run(serverPort)
+	err := r.Run(serverPort)
+	if err != nil {
+		panic(err)
+	}
 }

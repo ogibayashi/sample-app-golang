@@ -1,0 +1,21 @@
+name: lint
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.21.6' # または使用しているGoのバージョン
+    - name: Checkout Code
+      uses: actions/checkout@v2  # リポジトリのコードをチェックアウトする
+    - name: golangci-lint
+      run: |
+        make lint
+        make test
