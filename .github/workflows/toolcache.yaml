@@ -10,7 +10,6 @@ concurrency:
 jobs:
   misspell:
     name: misspell
-    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-misspell@v1
@@ -18,7 +17,6 @@ jobs:
           level: warning
           reporter: github-pr-review
   shellcheck:
-    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-shellcheck@v1
@@ -26,7 +24,6 @@ jobs:
           level: error
           reporter: github-pr-review
   yamllint:
-    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-yamllint@v1
@@ -34,7 +31,6 @@ jobs:
           level: error
           reporter: github-pr-review
   hadolint:
-    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-hadolint@v1
@@ -43,10 +39,20 @@ jobs:
           reporter: github-pr-review
   markdown:
     name: markdown
-    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-markdownlint@v0
         with:
           level: error
           reporter: github-pr-review
+  archive:
+    name: archive
+    steps:
+      - name: Archive tool cache
+        run: |
+          cd "${{ runner.tool_cache }}"
+          tar -czf tool_cache.tar.gz *
+      - name: Upload tool cache artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{runner.tool_cache}}/tool_cache.tar.gz
