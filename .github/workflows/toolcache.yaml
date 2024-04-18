@@ -1,8 +1,9 @@
 name: Review
+
+
 on:
   push:
-    branches:
-      - ["tool-cache"]
+    branches: ["tool-cache"]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
