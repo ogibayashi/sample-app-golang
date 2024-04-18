@@ -4,12 +4,14 @@ name: Review
 on:
   push:
     branches: ["tool-cache"]
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   misspell:
     name: misspell
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-misspell@v1
@@ -17,6 +19,7 @@ jobs:
           level: warning
           reporter: github-pr-review
   shellcheck:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-shellcheck@v1
@@ -24,6 +27,7 @@ jobs:
           level: error
           reporter: github-pr-review
   yamllint:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-yamllint@v1
@@ -31,6 +35,7 @@ jobs:
           level: error
           reporter: github-pr-review
   hadolint:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: reviewdog/action-hadolint@v1
@@ -38,6 +43,7 @@ jobs:
           level: error
           reporter: github-pr-review
   markdown:
+    runs-on: ubuntu-latest
     name: markdown
     steps:
       - uses: actions/checkout@v3
@@ -47,6 +53,7 @@ jobs:
           reporter: github-pr-review
   archive:
     name: archive
+    runs-on: ubuntu-latest
     steps:
       - name: Archive tool cache
         run: |
