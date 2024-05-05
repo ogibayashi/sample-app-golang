@@ -5,13 +5,12 @@ import (
 	"math/rand"
 
 	"net/http"
-	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/ogibayashi/sample-app-golang/gen"
 	"github.com/ogibayashi/sample-app-golang/middleware"
+	"github.com/ogibayashi/sample-app-golang/server"
 
 	_ "net/http/pprof"
 
@@ -19,30 +18,7 @@ import (
 )
 
 const serverPort = ":8080"
-const randMax = 10000
 const pprofBindAddr = ":8081"
-
-type SampleHanlder struct {
-}
-
-func (h *SampleHanlder) GetHello(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Hello, World!",
-	})
-}
-
-func (h *SampleHanlder) GetSort(c *gin.Context, params gen.GetSortParams) {
-	arr := make([]int, params.Size)
-
-	for i := 0; i < params.Size; i++ {
-		arr[i] = rand.Intn(randMax)
-	}
-	sort.Ints(arr)
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "OK",
-	})
-}
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -58,7 +34,7 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.AccessLogMiddleware())
 
-	gen.RegisterHandlers(r, &SampleHanlder{})
+	server.RegisterHandlers(r, server.NewStrictHandler(server.NewHandler(), nil))
 
 	err := r.Run(serverPort)
 	if err != nil {
