@@ -7,4 +7,6 @@ RUN make build
 FROM alpine:latest
 WORKDIR /root/
 COPY --from=builder /app/bin/sample-app-golang .
+COPY --from=builder /app/deploy .
+
 CMD ["./sample-app-golang"]
