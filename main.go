@@ -36,9 +36,13 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.AccessLogMiddleware())
 
-	server.RegisterHandlers(r, server.NewStrictHandler(server.NewHandler(), nil))
+	h, err := server.NewHandler()
+	if err != nil {
+		panic(err)
+	}
+	server.RegisterHandlers(r, server.NewStrictHandler(h, nil))
 
-	err := r.Run(serverPort)
+	err = r.Run(serverPort)
 	if err != nil {
 		panic(err)
 	}

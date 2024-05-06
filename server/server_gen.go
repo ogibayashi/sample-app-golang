@@ -21,17 +21,34 @@ import (
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 )
 
+// SystemError defines model for SystemError.
+type SystemError struct {
+	Error *string `json:"error,omitempty"`
+}
+
+// PostKafkaPublishJSONBody defines parameters for PostKafkaPublish.
+type PostKafkaPublishJSONBody struct {
+	// Message message to publish
+	Message string `json:"message"`
+}
+
 // GetSortParams defines parameters for GetSort.
 type GetSortParams struct {
 	// Size size of the list
 	Size int `form:"size" json:"size"`
 }
 
+// PostKafkaPublishJSONRequestBody defines body for PostKafkaPublish for application/json ContentType.
+type PostKafkaPublishJSONRequestBody PostKafkaPublishJSONBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// just return hello
 	// (GET /hello)
 	GetHello(c *gin.Context)
+	// post a message to kafka
+	// (POST /kafka/publish)
+	PostKafkaPublish(c *gin.Context)
 	// generate a list of random numbers and sort them
 	// (GET /sort)
 	GetSort(c *gin.Context, params GetSortParams)
@@ -57,6 +74,19 @@ func (siw *ServerInterfaceWrapper) GetHello(c *gin.Context) {
 	}
 
 	siw.Handler.GetHello(c)
+}
+
+// PostKafkaPublish operation middleware
+func (siw *ServerInterfaceWrapper) PostKafkaPublish(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.PostKafkaPublish(c)
 }
 
 // GetSort operation middleware
@@ -120,7 +150,12 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/hello", wrapper.GetHello)
+	router.POST(options.BaseURL+"/kafka/publish", wrapper.PostKafkaPublish)
 	router.GET(options.BaseURL+"/sort", wrapper.GetSort)
+}
+
+type SystemErrorJSONResponse struct {
+	Error *string `json:"error,omitempty"`
 }
 
 type GetHelloRequestObject struct {
@@ -137,6 +172,43 @@ type GetHello200JSONResponse struct {
 func (response GetHello200JSONResponse) VisitGetHelloResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHello500JSONResponse struct{ SystemErrorJSONResponse }
+
+func (response GetHello500JSONResponse) VisitGetHelloResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostKafkaPublishRequestObject struct {
+	Body *PostKafkaPublishJSONRequestBody
+}
+
+type PostKafkaPublishResponseObject interface {
+	VisitPostKafkaPublishResponse(w http.ResponseWriter) error
+}
+
+type PostKafkaPublish200JSONResponse struct {
+	Message *string `json:"message,omitempty"`
+}
+
+func (response PostKafkaPublish200JSONResponse) VisitPostKafkaPublishResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostKafkaPublish500JSONResponse struct{ SystemErrorJSONResponse }
+
+func (response PostKafkaPublish500JSONResponse) VisitPostKafkaPublishResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -160,11 +232,23 @@ func (response GetSort200JSONResponse) VisitGetSortResponse(w http.ResponseWrite
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetSort500JSONResponse struct{ SystemErrorJSONResponse }
+
+func (response GetSort500JSONResponse) VisitGetSortResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// just return hello
 	// (GET /hello)
 	GetHello(ctx context.Context, request GetHelloRequestObject) (GetHelloResponseObject, error)
+	// post a message to kafka
+	// (POST /kafka/publish)
+	PostKafkaPublish(ctx context.Context, request PostKafkaPublishRequestObject) (PostKafkaPublishResponseObject, error)
 	// generate a list of random numbers and sort them
 	// (GET /sort)
 	GetSort(ctx context.Context, request GetSortRequestObject) (GetSortResponseObject, error)
@@ -207,6 +291,39 @@ func (sh *strictHandler) GetHello(ctx *gin.Context) {
 	}
 }
 
+// PostKafkaPublish operation middleware
+func (sh *strictHandler) PostKafkaPublish(ctx *gin.Context) {
+	var request PostKafkaPublishRequestObject
+
+	var body PostKafkaPublishJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostKafkaPublish(ctx, request.(PostKafkaPublishRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostKafkaPublish")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(PostKafkaPublishResponseObject); ok {
+		if err := validResponse.VisitPostKafkaPublishResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetSort operation middleware
 func (sh *strictHandler) GetSort(ctx *gin.Context, params GetSortParams) {
 	var request GetSortRequestObject
@@ -237,12 +354,14 @@ func (sh *strictHandler) GetSort(ctx *gin.Context, params GetSortParams) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8yQsY7bMBBEf4XYWraVpOMPJEGKFCmDFGtpLdEQl/TuKoAj6N+DpX3A4YqrryIxnBni",
-	"zQaJLwXiBpZsIYigmOtCB6z1MJUFeYIO/pJoKgwRPh37Yw97B6USY00Q4UuTOqhos3rTaaZlaZ0TmR+l",
-	"kqClwt9HiPCV7FszdCCktbBSi33uez+GwkbccljrkoaWPF3V/99Ah5ky+q2K91p6pDOp4kSN5F4biEni",
-	"Cfa9e1HK+UqDwe7SSDpIqvbA+vmj+XTNGeUOEa6rWhCyVTg8cPz9pEXsPbBf/u5TCGYyEoX4e3vzl6Z/",
-	"FMol2ExhSer+5PptJblDB4yZnrY20W1NQiNEk5W6V/xPqMRGEwns+5+PPOhE7FtRwAbtAwjyWHLgNZ9J",
-	"NCCPwff1YbJ37v8DAAD//yKQuYCdAgAA",
+	"H4sIAAAAAAAC/9yTQW/UMBCF/4o1cEybBcQlRyQEVQ9U2mPVgzeZzXobe9yZSUWo8t/ROMt2WyokBKfe",
+	"7PHL+M33nAdoKWZKmFSgeQBGyZQEy2Y9iWL8zExs25aSYlJb+pyH0HoNlOq9ULKatDuM3laZKSNrWLrg",
+	"r+/xu495QGjgIily8oMT5HtkVySO2nZkxg4q0CmbTpRD6mGejxXa7LFVmK3UobQcspk47bleei62izCk",
+	"LZkBDVqul+LjzOd81tPgUw8V3CPL0ujd+ep8BXMFlDH5HKCBD6VUQfa6KzPVOxyG0rPHAsQGLjguOmjg",
+	"C+rXIqieAn2/Wv0DyIgivscyyd/z+XZpM31cHLxl3EIDb+rH9Ouj0/o0d2skY4yeJ2hgP4o6Rh05uQWB",
+	"nde3fnvr6zxuhiC7YpzkBSxXJHpp0quD0vDcjSj6ibrp/5B5OvThwCm5fLzzd3jmItjLa66PvW5eZPqo",
+	"VB5xfm35Wm7OuxNsJdolZSHWPz35tZ3bT8I+oiILNNfPA5HwAx1tne7QDUFMH6x+NyJPUEHyEQ8yeE67",
+	"OiF3wBGSYo82xc1ri6LHZHzR+QLKoLFPHUWXxrhBFudT5ywTgxnNx/wzAAD//7836NnOBQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
