@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/ogibayashi/sample-app-golang/config"
 	"github.com/ogibayashi/sample-app-golang/middleware"
 	"github.com/ogibayashi/sample-app-golang/server"
 
@@ -22,6 +23,7 @@ const pprofBindAddr = ":8081"
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	config.Init()
 
 	go func() {
 		log.Printf("running pprof server at %s", pprofBindAddr)
