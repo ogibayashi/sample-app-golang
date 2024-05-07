@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"math/rand"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"net/http"
 	"time"
@@ -20,6 +24,7 @@ import (
 
 const serverPort = ":8080"
 const pprofBindAddr = ":8081"
+const shutdownTimeoutSec = 5
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -42,8 +47,30 @@ func main() {
 	}
 	server.RegisterHandlers(r, server.NewStrictHandler(h, nil))
 
-	err = r.Run(serverPort)
-	if err != nil {
-		panic(err)
+	srv := &http.Server{
+		Addr:    serverPort,
+		Handler: r,
 	}
+
+	go func() {
+		// サービスの接続
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeoutSec*time.Second)
+	defer cancel()
+	if err := h.Close(); err != nil {
+		log.Printf("error in closing handler: %v\n", err)
+	}
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown error:%v\n", err)
+	}
+	log.Println("Server exiting")
 }

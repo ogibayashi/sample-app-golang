@@ -82,3 +82,7 @@ func (w *Writer) initialize() error {
 func (w *Writer) Write(s string) error {
 	return w.writer.WriteMessages(context.Background(), kafka.Message{Value: []byte(s)})
 }
+
+func (w *Writer) Close() error {
+	return w.writer.Close()
+}

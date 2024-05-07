@@ -40,6 +40,10 @@ func (s *SampleAppServer) PostKafkaPublish(ctx context.Context, request PostKafk
 	return PostKafkaPublish200JSONResponse{&r}, nil
 }
 
+func (s *SampleAppServer) Close() error {
+	return s.writer.Close()
+}
+
 func NewHandler() (*SampleAppServer, error) {
 	w, err := kafka.NewWriter()
 	if err != nil {
