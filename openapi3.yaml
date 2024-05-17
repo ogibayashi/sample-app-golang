@@ -16,6 +16,8 @@ paths:
                 properties:
                   message:
                     type: string
+        '500':
+          $ref: '#/components/responses/SystemError'
   /sort:
     get:
       summary: generate a list of random numbers and sort them
@@ -26,7 +28,7 @@ paths:
           required: true
           schema:
             type: integer
-      
+
       responses:
         '200':
           description: OK
@@ -37,3 +39,44 @@ paths:
                 properties:
                   message:
                     type: string
+        '500':
+          $ref: '#/components/responses/SystemError'
+  /kafka/publish:
+    post:
+      summary: post a message to kafka
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: message to publish
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          $ref: '#/components/responses/SystemError'
+components:
+  responses:
+    SystemError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: 'Internal server error occurred'
