@@ -8,14 +8,24 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    container:
+      image: golang:1.22
     steps:
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: '1.21.6' # または使用しているGoのバージョン
     - name: Checkout Code
-      uses: actions/checkout@v2  # リポジトリのコードをチェックアウトする
+      uses: actions/checkout@v4  # リポジトリのコードをチェックアウトする
     - name: golangci-lint
       run: |
         make lint
         make test
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4  # リポジトリのコードをチェックアウトする
+    - name: start up containers
+      run: |
+        docker compose up --wait
+    - name: test
+      run: |
+        curl -v -XPOST -H "Content-Type: application/json" -d '{"message": "'$(date +%s)'"}' localhost:8080/kafka/publish

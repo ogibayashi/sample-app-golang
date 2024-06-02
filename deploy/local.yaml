@@ -1,0 +1,29 @@
+kafka:
+  broker: localhost:9092
+  topic: example-topic
+  username: user
+  topic_auto_create: true
+  # password: **** (set APP_KAFKA_PASSWORD environment variable)
+  cacert: |
+    -----BEGIN CERTIFICATE-----
+    MIIDkzCCAnugAwIBAgIUCZhW8t31cnh4MCsv6YynKGnZ1V8wDQYJKoZIhvcNAQEL
+    BQAwWTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
+    GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDESMBAGA1UEAwwJbG9jYWxob3N0MB4X
+    DTI0MDYwMjA2NDQzOVoXDTM0MDUzMTA2NDQzOVowWTELMAkGA1UEBhMCQVUxEzAR
+    BgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5
+    IEx0ZDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+    MIIBCgKCAQEA3F2TgHjfrevukMYEWGrg+eE5NdGikXNlzqgAhW/LdpeJSl8QB1Vr
+    PM2vfp54IbsorcazAxExyXQuTvQW82+iITaQEk6XQijCjW39ZtqhgEwXMNtDh1LW
+    5po6jhX+51s79TDLGp9+YH+iL1oyqtg2d/zE32q2p6Oql1TehvJUVy/uNZy9JE66
+    fLoRXvKQnTezxqQ8S/Ygc7pGduXKh2QxNF0bnsWyIyEPfrOT8AhVFNZuNje3j3YW
+    MzVBSxbfnrbribIUMPJu5lBGeDeegT4e8qugPYq891SpdRr3tf7TKVGHvTPJv6rC
+    Sa3eF+j3buiCUwamNv3DWZ/v/cZqbEENcwIDAQABo1MwUTAdBgNVHQ4EFgQUOATM
+    6qLTdqqEygpztBhJk3d+qJkwHwYDVR0jBBgwFoAUOATM6qLTdqqEygpztBhJk3d+
+    qJkwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAjh/Ffp4AkHUL
+    SV86b/3PLjH6XEG9tqAqUbIvZ35j1ZXPRdFJmpI0N4g2O8uid+mEgsPs3UGIqlvj
+    p1VKyRK856AcVX8eJJfNqykblERc2GOMd3916EuwvXBfma8S1ZaVzFwH/0tdSyyR
+    UgRW9R6gco8vq8fjwmbTBempLTILTquOcHiW3hCOCys+XSy2Ct4llMpAQ3laaYjS
+    m+EBUNcgDmSX6k1eU0zcGk5IbjSNLm7V4c9a1Bc32lQsiefnqV3xUBv4+jwe7X0n
+    YuueitSxwMsAafRQlCtxEzQDhBAw+ypl+wsnFh85UYi88y01N+7Z5qg528pi1LY+
+    WejSsLPk4w==
+    -----END CERTIFICATE-----

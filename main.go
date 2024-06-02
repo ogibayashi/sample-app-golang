@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"math/rand"
 	"os"
@@ -27,8 +28,11 @@ const pprofBindAddr = ":8081"
 const shutdownTimeoutSec = 5
 
 func main() {
+	configName := flag.String("config", "config", "name of config file")
+	flag.Parse()
+
 	rand.Seed(time.Now().UnixNano())
-	config.Init()
+	config.Init(*configName)
 
 	go func() {
 		log.Printf("running pprof server at %s", pprofBindAddr)
