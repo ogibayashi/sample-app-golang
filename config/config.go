@@ -17,9 +17,9 @@ func init() {
 	c.AutomaticEnv()
 }
 
-func Init() {
+func Init(name string) {
 
-	c.SetConfigName("config")
+	c.SetConfigName(name)
 	c.SetConfigType("yaml")
 	c.AddConfigPath("./deploy")
 	err := c.ReadInConfig()
@@ -30,4 +30,8 @@ func Init() {
 
 func GetString(key string) string {
 	return c.GetString(key)
+}
+
+func GetBool(key string) bool {
+	return c.GetBool(key)
 }
